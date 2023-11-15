@@ -19,8 +19,7 @@ digito         [0-9]
 entero         {digito}+
 letra          [a-zA-Z]
 ident          {letra}({letra}|{digito}|_)*
-real           {digito}*"."{digito}*
-constante      {entero}|{real}   
+constante      ({entero}"."|{entero}|"."{entero}|{entero}"."{entero}) 
 comentario     \/\/.*
 
 %%
