@@ -14,7 +14,7 @@
 %option nounput       
 %option yylineno  
 
-delimitador    [ \t\n]+
+delimitador    [ \t]+
 digito         [0-9]
 entero         {digito}+
 letra          [a-zA-Z]
@@ -23,7 +23,7 @@ constante      ({entero}"."|{entero}|"."{entero}|{entero}"."{entero})
 comentario     \/\/.*
 
 %%
-
+"\n"            {if (verbosidad) {ECHO;fprintf(stdout,"%3d.- ", yylineno);};}
 {delimitador}   {if (verbosidad) ECHO; }
 {comentario}    {if (verbosidad) ECHO; }
 "="             { retornar (ASIG_);    }
