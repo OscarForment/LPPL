@@ -3,6 +3,14 @@
 #include <string.h>
 #include "header.h"
 %}
+
+%union{
+       char *ident;
+       int cent;
+       Lista lista;
+	Expresion texp;
+}
+
 /*Separadores*/
 %token ALLA_  CLLA_ APAR_ CPAR_ ACOR_ CCOR_ PUNTO_ COMA_ PCOMA_
 /*Operadores*/
