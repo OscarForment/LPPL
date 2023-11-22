@@ -65,21 +65,45 @@ tipoSimp   : INT_
        ;
 listCamp   : tipoSimp ID_ PCOMA_
        {insTdS($2, VARIABLE, $1, niv, dvar, -1);
-       dvar += TALLA_TIPO_SIMPLE}
+       dvar += TALLA_TIPO_SIMPLE;}
        | listCamp tipoSimp ID_ PCOMA_
        {insTdS($2, VARIABLE, $1, niv, dvar, -1);
-       dvar += TALLA_TIPO_SIMPLE}
+       dvar += TALLA_TIPO_SIMPLE;}
        ;
 
-declaFunc   : tipoSimp ID_ APAR_ paramForm CPAR_ ALLA_ declaVarLocal listInst RETURN_ expre PCOMA_ CLLA_
-       {insTdS($2, FUNCION, $1, niv, dvar, $5)}
+declaFunc   : tipoSimp ID_ 
+              {niv+=1; int aux = dvar; dvar = 0; cargaContexto(niv);}
+              APAR_ paramForm CPAR_ 
+              {insTdS($2, FUNCION, $1, niv, dvar, $4.ref);}
+              ALLA_ declaVarLocal listInst RETURN_ expre PCOMA_ CLLA_
+              {//si obtTdS($10).t != tipoSimp then error
+                     if (verTdS){
+                            mostrarTdS();
+                     }
+                     descargaContexto(niv);
+                     niv-=1;
+                     dvar=aux;
+              }
        ;
 
 paramForm   :
+       {$$.ref = insTdD(-1, T_VACIO);
+       $$.talla = 0};
        | listParamForm
+       {$$.ref = $1.ref;
+       $$.talla = $1.talla;}
        ;
 listParamForm   : tipoSimp ID_
+       {$$.ref = insTdD(-1, $1);
+       $$.talla = TALLA_TIPO_SIMPLE + TALLA_SEGENLACES;
+       if(!insTdS($2, PARAMETRO, $1, niv, -$$.talla, -1)) yyerror("Ya existe un parametro con el mismo identificador.");
+       }
        | tipoSimp ID_ COMA_ listParamForm
+       {
+       $$.ref = insTdD($4.ref, $1);
+       $$.talla = $4.talla + TALLA_TIPO_SIMPLE;
+       if(!insTdS($2, PARAMETRO, $1, niv, -$$.talla, -1))  yyerror("Ya existe un parametro con el mismo identificador.");
+	}
        ;
 declaVarLocal   :
        | declaVarLocal declaVar
@@ -147,9 +171,9 @@ expreSufi   : const
        | ID_ APAR_ paramAct CPAR_
        ;
 
-const   : CTE_
-       | TRUE_
-       | FALSE_
+const   : CTE_  {$$.t=T_ENTERO}
+       | TRUE_  {$$.t=T_LOGICO}
+       | FALSE_ {$$.t=T_LOGICO}
        ;
 
 paramAct   :
@@ -157,7 +181,20 @@ paramAct   :
        ;
 
 listParamAct   : expre
+         {
+              $$.ref = insTdD(-1, $1);
+              $$.t = TALLA_TIPO_SIMPLE;
+		 }
        | expre COMA_ listParamAct
+          {
+                INF inf=obtTdD($)
+                if (inf.tipo==T_ERROR){
+                    yyerror("Error en los parámetros actuales");
+                } else {
+                     $$.ref = $3.ref
+                     $$.t = $3.t + TALLA_TIPO_SIMPLE;
+                }
+		 }
        ;
 
 opLogic   : AND_
