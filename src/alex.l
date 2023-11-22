@@ -65,7 +65,7 @@ comentario     \/\/.*
 "read"          { retornar(READ_); }
 "print"         { retornar(PRINT_); }
 
-{constante}     { retornar (CTE_);     }
-{ident}         { retornar (ID_);      }  
+{constante}     { yylval.cent = atoi(yytext); retornar (CTE_);     }
+{ident}         { yylval.ident = strdup(yytext); retornar (ID_);      }  
 .		{ yyerror("Caracter desconocido") ;}
 %%

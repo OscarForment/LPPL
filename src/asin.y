@@ -2,12 +2,13 @@
 #include <stdio.h>
 #include <string.h>
 #include "header.h"
+#include "libtds.h"
 %}
 
 %union{
        char *ident;
        int cent;
-       Lista lista;
+       Lista tlista;
 	Expresion texp;
 }
 
@@ -23,11 +24,16 @@
 %token INT_     BOOL_
 %token READ_    PRINT_	RETURN_ STRUCT_ TRUE_   FALSE_
 
-%token CTE_     ID_
+%token<ident> ID_
+%token<cent> CTE_
+
 %%
 
 /*##################################*/
-programa   : listDecla
+programa   : 
+              {dvar=0; niv=0; cargaContexto(niv)}
+              listDecla
+              {if(verTdS) mostrarTdS();}
        ;
 listDecla   : decla
        | listDecla decla
@@ -36,18 +42,37 @@ decla   : declaVar
        | declaFunc
        ;
 declaVar   : tipoSimp ID_ PCOMA_
+       {insTdS($2, VARIABLE, $1, niv, dvar, -1);
+       dvar += TALLA_TIPO_SIMPLE}
        | tipoSimp ID_ ACOR_ CTE_ CCOR_ PCOMA_
+       { int numelem = $4;
+        if ($4 <= 0) {
+              yyerror("Talla inapropiada del array");
+              numelem = 0;
+        }
+        int refe = insTdA($1, numelem);
+        if ( !insTdS($2, VARIABLE, T_ARRAY, niv, dvar, refe) )
+              yyerror ("Identificador repetido");
+        else dvar += numelem * TALLA_TIPO_SIMPLE;
+       }
        | STRUCT_ ALLA_ listCamp CLLA_ ID_ PCOMA_
        ;
 
 tipoSimp   : INT_
+       {$$ = T_ENTERO;}
        | BOOL_
+       {$$ = T_LOGICO;}
        ;
 listCamp   : tipoSimp ID_ PCOMA_
+       {insTdS($2, VARIABLE, $1, niv, dvar, -1);
+       dvar += TALLA_TIPO_SIMPLE}
        | listCamp tipoSimp ID_ PCOMA_
+       {insTdS($2, VARIABLE, $1, niv, dvar, -1);
+       dvar += TALLA_TIPO_SIMPLE}
        ;
 
 declaFunc   : tipoSimp ID_ APAR_ paramForm CPAR_ ALLA_ declaVarLocal listInst RETURN_ expre PCOMA_ CLLA_
+       {insTdS($2, FUNCION, $1, niv, dvar, $5)}
        ;
 
 paramForm   :
