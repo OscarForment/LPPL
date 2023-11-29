@@ -12,6 +12,22 @@
 #define TALLA_TIPO_SIMPLE 1 /* Talla asociada a los tipos simples */
 #define TALLA_SEGENLACES 2 /* Talla del segmento de Enlaces de Control */
 
+#define OP_NOT 0
+#define OP_MAS 1
+#define OP_MENOS 2
+#define OP_POR 3
+#define OP_DIV 4
+#define OP_INCRE 5
+#define OP_DECRE 6
+#define OP_MAYOR 7
+#define OP_MENOR 8
+#define OP_MAYORIG 9
+#define OP_MENORIG 10
+#define OP_IGUAL 11
+#define OP_DISTINTO 12
+#define OP_OR 13
+#define OP_AND 14
+
 typedef struct lista{
     int ref;
     int talla;

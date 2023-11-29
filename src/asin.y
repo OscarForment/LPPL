@@ -29,7 +29,8 @@
 
 %type<tlista> paramForm listParamForm 
 
-%type<cent> listDecla decla tipoSimp declaFunc listCamp listParamAct declaVar
+%type<cent> listDecla decla tipoSimp declaFunc listCamp declaVar
+              opAd opIgual opIncre opLogic opMul opRel opUna
 
 %type<texp> expre expreAd expreIgual expreLogic expreMul expreRel expreSufi expreUna const
 
@@ -137,17 +138,19 @@ instSelec   : IF_ APAR_ expre CPAR_ inst ELSE_ inst
 instIter   : WHILE_ APAR_ expre CPAR_ inst
        ;
 
-expre   : expreLogic
+expre   : expreLogic {$$.t = $1.t;}
        | ID_ ASIG_ expre
+       {$$.t = obtTdS($1).t;}
        | ID_ ACOR_ expre CCOR_ ASIG_ expre
        | ID_ PUNTO_ ID_ ASIG_ expre
        ;
 
-expreLogic   : expreIgual
+expreLogic   : expreIgual {$$.t = $1.t;}
        | expreLogic opLogic expreIgual
+       {$$.t = T_LOGICO;}
        ;
 
-expreIgual   : expreRel
+expreIgual   : expreRel {$$.t = $1.t;}
        | expreIgual opIgual expreRel
        ;
 
@@ -177,9 +180,9 @@ expreSufi   : const
        | ID_ APAR_ paramAct CPAR_
        ;
 
-const   : CTE_  {$$.t=T_ENTERO}
-       | TRUE_  {$$.t=T_LOGICO}
-       | FALSE_ {$$.t=T_LOGICO}
+const   : CTE_  {$$.t=T_ENTERO;}
+       | TRUE_  {$$.t=T_LOGICO;}
+       | FALSE_ {$$.t=T_LOGICO;}
        ;
 
 paramAct   :
@@ -193,7 +196,7 @@ listParamAct   : expre
 		 }
        | expre COMA_ listParamAct
           {
-                INF inf=obtTdD($)
+                INF inf=obtTdD($3);
                 if (inf.tipo==T_ERROR){
                     yyerror("Error en los parámetros actuales");
                 } else {
@@ -203,35 +206,35 @@ listParamAct   : expre
 		 }
        ;
 
-opLogic   : AND_
-       | OR_
+opLogic   : AND_ {$$.t = OP_AND;}
+       | OR_ {$$.t = OP_OR;}
        ;
 
-opIgual   : IGUAL_
-       | DISTINTO_
+opIgual   : IGUAL_ {$$.t = OP_IGUAL;}
+       | DISTINTO_ {$$.t = OP_DISTINTO;}
        ;
 
-opRel   : MAYOR_
-       | MENOR_
-       | MAYORIG_
-       | MENORIG_
+opRel   : MAYOR_ {$$.t = OP_MAYOR;}
+       | MENOR_ {$$.t = OP_MENOR;}
+       | MAYORIG_ {$$.t = OP_MAYORIG;}
+       | MENORIG_ {$$.t = OP_MENORIG;}
        ;
 
-opAd   : MAS_
-       | MENOS_
+opAd   : MAS_ {$$.t = OP_MAS;}
+       | MENOS_ {$$.t = OP_MENOS;}
        ;
 
-opMul   : POR_
-       | DIV_
+opMul   : POR_ {$$.t = OP_POR;}
+       | DIV_ {$$.t = OP_DIV;}
        ;
 
-opUna   : MAS_
-       | MENOS_
-       | NOT_
+opUna   : MAS_ {$$.t = OP_MAS;}
+       | MENOS_ {$$.t = OP_MENOS;}
+       | NOT_ {$$.t = OP_NOT;}
        ;
 
-opIncre   : INCRE_
-       | DECRE_
+opIncre   : INCRE_ {$$.t = OP_INCRE;}
+       | DECRE_ {$$.t = OP_DECRE;}
        ;
 
 %%
