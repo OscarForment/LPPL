@@ -206,35 +206,35 @@ listParamAct   : expre
 		 }
        ;
 
-opLogic   : AND_ {$$.t = OP_AND;}
-       | OR_ {$$.t = OP_OR;}
+opLogic   : AND_ {$$ = OP_AND;}
+       | OR_ {$$ = OP_OR;}
        ;
 
-opIgual   : IGUAL_ {$$.t = OP_IGUAL;}
-       | DISTINTO_ {$$.t = OP_DISTINTO;}
+opIgual   : IGUAL_ {$$ = OP_IGUAL;}
+       | DISTINTO_ {$$ = OP_DISTINTO;}
        ;
 
-opRel   : MAYOR_ {$$.t = OP_MAYOR;}
-       | MENOR_ {$$.t = OP_MENOR;}
-       | MAYORIG_ {$$.t = OP_MAYORIG;}
-       | MENORIG_ {$$.t = OP_MENORIG;}
+opRel   : MAYOR_ {$$ = OP_MAYOR;}
+       | MENOR_ {$$ = OP_MENOR;}
+       | MAYORIG_ {$$ = OP_MAYORIG;}
+       | MENORIG_ {$$ = OP_MENORIG;}
        ;
 
-opAd   : MAS_ {$$.t = OP_MAS;}
-       | MENOS_ {$$.t = OP_MENOS;}
+opAd   : MAS_ {$$ = OP_MAS;}
+       | MENOS_ {$$ = OP_MENOS;}
        ;
 
-opMul   : POR_ {$$.t = OP_POR;}
-       | DIV_ {$$.t = OP_DIV;}
+opMul   : POR_ {$$ = OP_POR;}
+       | DIV_ {$$ = OP_DIV;}
        ;
 
-opUna   : MAS_ {$$.t = OP_MAS;}
-       | MENOS_ {$$.t = OP_MENOS;}
-       | NOT_ {$$.t = OP_NOT;}
+opUna   : MAS_ {$$ = OP_MAS;}
+       | MENOS_ {$$ = OP_MENOS;}
+       | NOT_ {$$ = OP_NOT;}
        ;
 
-opIncre   : INCRE_ {$$.t = OP_INCRE;}
-       | DECRE_ {$$.t = OP_DECRE;}
+opIncre   : INCRE_ {$$ = OP_INCRE;}
+       | DECRE_ {$$ = OP_DECRE;}
        ;
 
 %%
