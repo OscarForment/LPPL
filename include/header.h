@@ -9,6 +9,18 @@
 /****************************************************** Constantes generales */
 #define TRUE  1
 #define FALSE 0
+#define TALLA_TIPO_SIMPLE 1 /* Talla asociada a los tipos simples */
+#define TALLA_SEGENLACES 2 /* Talla del segmento de Enlaces de Control */
+
+typedef struct lista{
+    int ref;
+    int talla;
+} Lista;
+
+typedef struct texp{
+   int t;
+   //int v;
+} Expresion;
 /************************************* Variables externas definidas en el AL */
 extern int yylex();
 extern int yyparse();
@@ -22,8 +34,6 @@ extern void yyerror(const char * msg) ;   /* Tratamiento de errores          */
 extern int verbosidad;                   /* Flag si se desea una traza       */
 extern int numErrores;              /* Contador del numero de errores        */
 
-#define TALLA_TIPO_SIMPLE 1 /* Talla asociada a los tipos simples */
-#define TALLA_SEGENLACES 2 /* Talla del segmento de Enlaces de Control */
 
 /************************ Variables externas definidas en Programa Principal */
 extern int verTdS; /* Flag para saber si mostrar la TdS */

@@ -27,11 +27,17 @@
 %token<ident> ID_
 %token<cent> CTE_
 
+%type<tlista> paramForm listParamForm 
+
+%type<cent> listDecla decla tipoSimp declaFunc listCamp listParamAct declaVar
+
+%type<texp> expre expreAd expreIgual expreLogic expreMul expreRel expreSufi expreUna const
+
 %%
 
 /*##################################*/
 programa   : 
-              {dvar=0; niv=0; cargaContexto(niv)}
+              {dvar=0; niv=0; cargaContexto(niv);}
               listDecla
               {if(verTdS) mostrarTdS();}
        ;
@@ -43,7 +49,7 @@ decla   : declaVar
        ;
 declaVar   : tipoSimp ID_ PCOMA_
        {insTdS($2, VARIABLE, $1, niv, dvar, -1);
-       dvar += TALLA_TIPO_SIMPLE}
+       dvar += TALLA_TIPO_SIMPLE;}
        | tipoSimp ID_ ACOR_ CTE_ CCOR_ PCOMA_
        { int numelem = $4;
         if ($4 <= 0) {
@@ -74,7 +80,7 @@ listCamp   : tipoSimp ID_ PCOMA_
 declaFunc   : tipoSimp ID_ 
               {niv+=1; int aux = dvar; dvar = 0; cargaContexto(niv);}
               APAR_ paramForm CPAR_ 
-              {insTdS($2, FUNCION, $1, niv, dvar, $4.ref);}
+              {insTdS($2, FUNCION, $1, niv, dvar, $5.ref);}
               ALLA_ declaVarLocal listInst RETURN_ expre PCOMA_ CLLA_
               {//si obtTdS($10).t != tipoSimp then error
                      if (verTdS){
@@ -88,7 +94,7 @@ declaFunc   : tipoSimp ID_
 
 paramForm   :
        {$$.ref = insTdD(-1, T_VACIO);
-       $$.talla = 0};
+       $$.talla = 0;}
        | listParamForm
        {$$.ref = $1.ref;
        $$.talla = $1.talla;}
