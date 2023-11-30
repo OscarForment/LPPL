@@ -42,11 +42,11 @@ programa   :
               listDecla
               {if(verTdS) mostrarTdS();}
        ;
-listDecla   : decla
-       | listDecla decla
+listDecla   : decla {$$ = $1;}
+       | listDecla decla {$$ = $1 + $2;}
        ;
-decla   : declaVar
-       | declaFunc
+decla   : declaVar {$$=0;}
+       | declaFunc {$$=$1;}
        ;
 declaVar   : tipoSimp ID_ PCOMA_
        {insTdS($2, VARIABLE, $1, niv, dvar, -1);
@@ -63,6 +63,10 @@ declaVar   : tipoSimp ID_ PCOMA_
         else dvar += numelem * TALLA_TIPO_SIMPLE;
        }
        | STRUCT_ ALLA_ listCamp CLLA_ ID_ PCOMA_
+       {
+              
+              $3.ref = insTdS($5, VARIABLE, T_RECORD, niv, dvar, -1,);
+       }
        ;
 
 tipoSimp   : INT_
@@ -72,14 +76,16 @@ tipoSimp   : INT_
        ;
 listCamp   : tipoSimp ID_ PCOMA_
        {insTdS($2, VARIABLE, $1, niv, dvar, -1);
-       dvar += TALLA_TIPO_SIMPLE;}
+       dvar += TALLA_TIPO_SIMPLE;
+       insTdR(-$$.ref, $2, $1, dvar)
+       }
        | listCamp tipoSimp ID_ PCOMA_
        {insTdS($2, VARIABLE, $1, niv, dvar, -1);
        dvar += TALLA_TIPO_SIMPLE;}
        ;
 
 declaFunc   : tipoSimp ID_ 
-              {niv+=1; int aux = dvar; dvar = 0; cargaContexto(niv);}
+              {niv+=1; $<cent>$ = dvar; dvar = 0; cargaContexto(niv);}
               APAR_ paramForm CPAR_ 
               {insTdS($2, FUNCION, $1, niv, dvar, $5.ref);}
               ALLA_ declaVarLocal listInst RETURN_ expre PCOMA_ CLLA_
@@ -140,9 +146,25 @@ instIter   : WHILE_ APAR_ expre CPAR_ inst
 
 expre   : expreLogic {$$.t = $1.t;}
        | ID_ ASIG_ expre
-       {$$.t = obtTdS($1).t;}
+       { SIMB sim = obtTdS($1);
+       if (sim.t == T_ERROR) yyerror("Objeto no declarado");
+       else if (! (((sim.t == T_ENTERO) && ($3.t == T_ENTERO)) ||
+                     ((sim.t == T_LOGICO) && ($3.t == T_LOGICO))) )
+              yyerror("Error de tipos en la ‘instrucci´on de asignaci´on’");
+       }
+
        | ID_ ACOR_ expre CCOR_ ASIG_ expre
+       {
+              SIMB simb = obtTdS($1);
+              DIM ar = obtTdA($1);
+       
+       }
        | ID_ PUNTO_ ID_ ASIG_ expre
+       {
+              SIMB simb = obtTdS($1);
+              CAMP reg = obtTdR(simb1.ref, $3);
+
+       }
        ;
 
 expreLogic   : expreIgual {$$.t = $1.t;}
@@ -166,18 +188,43 @@ expreMul   : expreUna
        | expreMul opMul expreUna
        ;
 
-expreUna   : expreSufi
+expreUna   : expreSufi {$$.t = $1.t;}
        | opUna expreUna
+       {
+              if($2.t == T_ENTERO){
+                     $$.t=$2.t;
+              }else if ($2.t == T_LOGICO) {
+                     $$.t==$2.t;
+              }
+       }
        | opIncre ID_
+       {
+              SIMB simb = obtTdS($2);
+              $$.t=simb.t;
+       }
        ;
 
-expreSufi   : const
-       | APAR_ expre CPAR_
-       | ID_
-       | ID_ opIncre
+expreSufi   : const {$$.t=$1.t;}
+       | APAR_ expre CPAR_ {$$.t = $2.t;}
+       | ID_ {
+              SIMB simb = obtTdS($1);
+              $$.t=simb.t;
+       }
+       | ID_ opIncre {
+              SIMB simb = obtTdS($1);
+              $$.t=simb.t;
+       }
        | ID_ PUNTO_ ID_
-       | ID_ ACOR_ expre CCOR_
-       | ID_ APAR_ paramAct CPAR_
+       | ID_ ACOR_ expre CCOR_ {
+              SIMB simb = obtTdS($1);
+              DIM dim = obtTdA(simb.ref);
+              $$.t = dim.telem;
+       }
+       | ID_ APAR_ paramAct CPAR_ {
+              SIMB simb = obtTdS($1);
+              INF inf = obtTdD(simb.ref);
+              $$.t=inf.t;
+       }
        ;
 
 const   : CTE_  {$$.t=T_ENTERO;}
