@@ -27,9 +27,9 @@
 %token<ident> ID_
 %token<cent> CTE_
 
-%type<tlista> paramForm listParamForm 
+%type<tlista> paramForm listParamForm listCamp
 
-%type<cent> listDecla decla tipoSimp declaFunc listCamp declaVar
+%type<cent> listDecla decla tipoSimp declaFunc declaVar
               opAd opIgual opIncre opLogic opMul opRel opUna
 
 %type<texp> expre expreAd expreIgual expreLogic expreMul expreRel expreSufi expreUna const
@@ -64,8 +64,8 @@ declaVar   : tipoSimp ID_ PCOMA_
        }
        | STRUCT_ ALLA_ listCamp CLLA_ ID_ PCOMA_
        {
-              
-              $3.ref = insTdS($5, VARIABLE, T_RECORD, niv, dvar, -1,);
+              insTdS($5, VARIABLE, T_RECORD, niv, dvar, -1,);
+              dvar += $3.talla;
        }
        ;
 
@@ -77,11 +77,17 @@ tipoSimp   : INT_
 listCamp   : tipoSimp ID_ PCOMA_
        {insTdS($2, VARIABLE, $1, niv, dvar, -1);
        dvar += TALLA_TIPO_SIMPLE;
-       insTdR(-$$.ref, $2, $1, dvar)
+       int refe = insTdR($$.ref, $2, $1, dvar);
+       $$.talla = TALLA_TIPO_SIMPLE;
+       $$.ref=refe;
        }
        | listCamp tipoSimp ID_ PCOMA_
-       {insTdS($2, VARIABLE, $1, niv, dvar, -1);
-       dvar += TALLA_TIPO_SIMPLE;}
+       {insTdS($3, VARIABLE, $2, niv, dvar, -1);
+       dvar += TALLA_TIPO_SIMPLE;
+       $$.talla = $1.talla + TALLA_TIPO_SIMPLE;
+       int refe = insTdR($1.ref, $3, $2, dvar);
+       $$.ref=refe;
+       }
        ;
 
 declaFunc   : tipoSimp ID_ 
@@ -95,7 +101,7 @@ declaFunc   : tipoSimp ID_
                      }
                      descargaContexto(niv);
                      niv-=1;
-                     dvar=aux;
+                     dvar=$<cent>2;
               }
        ;
 
