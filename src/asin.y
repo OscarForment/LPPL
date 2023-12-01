@@ -64,7 +64,7 @@ declaVar   : tipoSimp ID_ PCOMA_
        }
        | STRUCT_ ALLA_ listCamp CLLA_ ID_ PCOMA_
        {
-              insTdS($5, VARIABLE, T_RECORD, niv, dvar, -1,);
+              insTdS($5, VARIABLE, T_RECORD, niv, dvar, -1);
               dvar += $3.talla;
        }
        ;
@@ -168,7 +168,7 @@ expre   : expreLogic {$$.t = $1.t;}
        | ID_ PUNTO_ ID_ ASIG_ expre
        {
               SIMB simb = obtTdS($1);
-              CAMP reg = obtTdR(simb1.ref, $3);
+              CAMP reg = obtTdR(simb.ref, $3);
 
        }
        ;
@@ -229,7 +229,7 @@ expreSufi   : const {$$.t=$1.t;}
        | ID_ APAR_ paramAct CPAR_ {
               SIMB simb = obtTdS($1);
               INF inf = obtTdD(simb.ref);
-              $$.t=inf.t;
+              $$.t=inf.tipo;
        }
        ;
 
