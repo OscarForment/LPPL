@@ -177,18 +177,16 @@ instIter   : WHILE_ APAR_ expre CPAR_ inst
 
 expre   : expreLogic {$$.t = $1.t;}
        | ID_ ASIG_ expre
-       { SIMB sim = obtTdS($1);
-       if (sim.t == T_ERROR) yyerror("Objeto no declarado");
-       else if (! (((sim.t == T_ENTERO) && ($3.t == T_ENTERO)) ||
+              { SIMB sim = obtTdS($1);
+              if (sim.t == T_ERROR) yyerror("Objeto no declarado");
+              else if (! (((sim.t == T_ENTERO) && ($3.t == T_ENTERO)) ||
                      ((sim.t == T_LOGICO) && ($3.t == T_LOGICO))) )
               yyerror("Error de tipos en la ‘instrucci´on de asignaci´on’");
-       }
-
+              }
        | ID_ ACOR_ expre CCOR_ ASIG_ expre
        {
               SIMB simb = obtTdS($1);
               DIM ar = obtTdA($1);
-       
        }
        | ID_ PUNTO_ ID_ ASIG_ expre
        {
@@ -205,18 +203,63 @@ expreLogic   : expreIgual {$$.t = $1.t;}
 
 expreIgual   : expreRel {$$.t = $1.t;}
        | expreIgual opIgual expreRel
+              {
+                     $$.t = T_ERROR;
+                     if ($1.t != T_ERROR && $3.t != T_ERROR)
+                     {
+                            if ($1.t != $3.t )
+                            {
+                                   yyerror("Tipos incompatibles");
+                            }
+                            if ($1.t == $3.t && $3.t != T_LOGICO || $1.t == $3.t && $3.t != T_ENTERO)
+                            {
+                                   yyerror("La expresión no es lógica o entera");
+                            }
+                            else {
+                                   $$.t = T_LOGICO;
+                            }
+                     }
+              }
        ;
 
-expreRel   : expreAd
+expreRel   : expreAd {$$.t = $1.t;}
        | expreRel opRel expreAd
+              {
+                     $$.t = T_ERROR;
+                     if (&1.t != T_ERROR && $3.t != T_ERROR)
+                     {
+                           if (($1.t == $3.t && $1.t == T_ENTERO)) {
+					$$.t = = T_LOGICO;
+                            } 
+                            else {yyerror("Alguno de ellos no es de tipo entero.");}
+                     }
+              }
        ;
 
-expreAd   : expreMul
+expreAd   : expreMul { $$.t = $1.t; }
        | expreAd opAd expreMul
+       {
+              $$.t = T_ERROR;
+              if ($1.t != T_ERROR && $3.t != T_ERROR) {
+			if (($1.t == $3.t && $1.t == T_ENTERO)) {
+					$$.t = = T_LOGICO;
+                            } 
+                            else {yyerror("Alguno de ellos no es de tipo entero.");}
+              }
+       }
        ;
 
-expreMul   : expreUna
+expreMul   : expreUna  {$$.t = $1.t;}
        | expreMul opMul expreUna
+       {
+              $$.t = T_ERROR;
+              if ($1.t != T_ERROR && $3.t != T_ERROR) {
+			if (($1.t == $3.t && $1.t == T_ENTERO)) {
+					$$.t = = T_LOGICO;
+                            } 
+                     else {yyerror("Alguno de ellos no es de tipo entero.");}
+              }
+       }
        ;
 
 expreUna   : expreSufi {$$.t = $1.t;}
