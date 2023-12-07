@@ -336,13 +336,37 @@ expreSufi   : const {$$.t=$1.t;}
        | ID_ PUNTO_ ID_
        | ID_ ACOR_ expre CCOR_ {
               SIMB simb = obtTdS($1);
-              DIM dim = obtTdA(simb.ref);
-              $$.t = dim.telem;
+              $$.t = T_ERROR;
+              if(simb.t == T_ERROR)
+              {
+                     yyerror("El identificador no pertenece a ningun simbolo.");
+              }
+              else if($3.t != T_ENTERO)
+              {
+                     yyerror("El indice no es de tipo entero, o no es positivo.");
+              }
+              else
+              {
+                     DIM dim = obtTdA(simb.ref);
+                     $$.t = dim.telem;
+              }
        }
        | ID_ APAR_ paramAct CPAR_ {
               SIMB simb = obtTdS($1);
+              $$.t = T_ERROR;
+              if(simb.t == T_ERROR)
+              {
+                     yyerror("El identificador no tiene correspondencia."); 
+              }
               INF inf = obtTdD(simb.ref);
-              $$.t=inf.tipo;
+              if (inf.t == T_ERROR)
+              {
+                     yyerror("El identificador no tiene correspondencia."); 
+              }
+              else
+              {
+                    $$.t = inf.t; 
+              }
        }
        ;
 
