@@ -150,7 +150,7 @@ instEntSal   : READ_ APAR_ ID_ CPAR_ PCOMA_
                      }
        | PRINT_ APAR_ expre CPAR_ PCOMA_
               {
-                     if($3.t != T_ERROR && $3.t != T_EMTERO)
+                     if($3.t != T_ERROR && $3.t != T_ENTERO)
                             {
                                    yyerror("El argumento de salida no es un entero");
                             }
@@ -265,16 +265,44 @@ expreMul   : expreUna  {$$.t = $1.t;}
 expreUna   : expreSufi {$$.t = $1.t;}
        | opUna expreUna
        {
+              $$.t = T_ERROR
               if($2.t == T_ENTERO){
-                     $$.t=$2.t;
-              }else if ($2.t == T_LOGICO) {
-                     $$.t==$2.t;
+                     if ($1 == OP_NOT) {
+                            yyerror("No se puede aplicar la operacion not si no es tipo logico.");
+                     }
+                     else {$$.t=$2.t;}
+              }
+              else if ($2.t == T_LOGICO) {
+                      if ($1 == OP_SUMA || $1 == OP_RESTA)
+                      {
+                            if ($1 == OP_SUMA || $1 == OP_RESTA)
+                            {
+                                   yyerror("No se puede aplicar la operacion suma o resta si no es tipo entero.");
+                            }
+                            else {$$.t = T_LOGICO;}
+                      }
+              }
+              else
+              {
+                     yyerror("No es de tipo logico o entero.");
               }
        }
        | opIncre ID_
        {
               SIMB simb = obtTdS($2);
-              $$.t=simb.t;
+              $$.t=T_ERROR;
+
+              if(sim.t = T_ERROR)
+              {
+                     yyerror("El identificador no se encuentra registrado en la tabla de símbolos.");
+              }
+              else if(sim.t != T_ENTERO)
+              {
+                     yyerror("El tipo no es entero y no puede aplicarsele una operacion incremental.");
+              }
+              else{
+                     $$.t = sim.t
+              }
        }
        ;
 
@@ -282,11 +310,28 @@ expreSufi   : const {$$.t=$1.t;}
        | APAR_ expre CPAR_ {$$.t = $2.t;}
        | ID_ {
               SIMB simb = obtTdS($1);
-              $$.t=simb.t;
+              $$.t = T_ERROR;
+              if(simb.t == T_ERROR)
+              {
+                     yyerror("El identificador no se encuentra registrado en la tabla de símbolos.");
+              }
+              else {$$.t = simb.t}
        }
        | ID_ opIncre {
               SIMB simb = obtTdS($1);
-              $$.t=simb.t;
+              $$.t=T_ERROR;
+              if(simb.t == T_ERROR)
+              {
+                     yyerror("El identificador no se encuentra registrado en la tabla de símbolos.");
+              }
+              else if (simb.t == T_ENTERO)
+              {
+                     $$.t = simb.t;
+              }
+              else
+              {
+                     yyerror("El tipo no es entero y no puede aplicarsele una operacion incremental.");
+              }
        }
        | ID_ PUNTO_ ID_
        | ID_ ACOR_ expre CCOR_ {
