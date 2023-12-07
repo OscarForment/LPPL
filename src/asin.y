@@ -141,13 +141,38 @@ inst   : ALLA_ listInst CLLA_
 instExpre   : expre PCOMA_ | PCOMA_
 
 instEntSal   : READ_ APAR_ ID_ CPAR_ PCOMA_
+                     {
+                            SIMB sim = obtTdS($3):
+                            if(sim.t != T_ENTERO)
+                                   {
+                                      yyerror("El argumento de entrada no es de tipo entero.");   
+                                   }
+                     }
        | PRINT_ APAR_ expre CPAR_ PCOMA_
+              {
+                     if($3.t != T_ERROR && $3.t != T_EMTERO)
+                            {
+                                   yyerror("El argumento de salida no es un entero");
+                            }
+              }
        ;
 
 instSelec   : IF_ APAR_ expre CPAR_ inst ELSE_ inst
+              {
+                     if ($3.t != T_ERROR && $3.t != T_LOGICO)
+                     {
+                            yyerror("La expresion a evaluar no es una expresión lógica.");
+                     }
+              }
        ;
 
 instIter   : WHILE_ APAR_ expre CPAR_ inst
+              {
+                     if($3.t != T_ERROR && $3.t != T_LOGICO)
+                     {
+                            yyerror("La expresion a evaluar no es una expresion logica.");
+                     }
+              }
        ;
 
 expre   : expreLogic {$$.t = $1.t;}
