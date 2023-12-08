@@ -142,8 +142,8 @@ instExpre   : expre PCOMA_ | PCOMA_
 
 instEntSal   : READ_ APAR_ ID_ CPAR_ PCOMA_
                      {
-                            SIMB sim = obtTdS($3):
-                            if(sim.t != T_ENTERO)
+                            SIMB simb = obtTdS($3);
+                            if(simb.t != T_ENTERO)
                                    {
                                       yyerror("El argumento de entrada no es de tipo entero.");   
                                    }
@@ -177,10 +177,10 @@ instIter   : WHILE_ APAR_ expre CPAR_ inst
 
 expre   : expreLogic {$$.t = $1.t;}
        | ID_ ASIG_ expre
-              { SIMB sim = obtTdS($1);
-              if (sim.t == T_ERROR) yyerror("Objeto no declarado");
-              else if (! (((sim.t == T_ENTERO) && ($3.t == T_ENTERO)) ||
-                     ((sim.t == T_LOGICO) && ($3.t == T_LOGICO))) )
+              { SIMB simb = obtTdS($1);
+              if (simb.t == T_ERROR) yyerror("Objeto no declarado");
+              else if (! (((simb.t == T_ENTERO) && ($3.t == T_ENTERO)) ||
+                     ((simb.t == T_LOGICO) && ($3.t == T_LOGICO))) )
               yyerror("Error de tipos en la ‘instrucci´on de asignaci´on’");
               }
        | ID_ ACOR_ expre CCOR_ ASIG_ expre
@@ -226,10 +226,10 @@ expreRel   : expreAd {$$.t = $1.t;}
        | expreRel opRel expreAd
               {
                      $$.t = T_ERROR;
-                     if (&1.t != T_ERROR && $3.t != T_ERROR)
+                     if ($1.t != T_ERROR && $3.t != T_ERROR)
                      {
                            if (($1.t == $3.t && $1.t == T_ENTERO)) {
-					$$.t = = T_LOGICO;
+					$$.t == T_LOGICO;
                             } 
                             else {yyerror("Alguno de ellos no es de tipo entero.");}
                      }
@@ -242,7 +242,7 @@ expreAd   : expreMul { $$.t = $1.t; }
               $$.t = T_ERROR;
               if ($1.t != T_ERROR && $3.t != T_ERROR) {
 			if (($1.t == $3.t && $1.t == T_ENTERO)) {
-					$$.t = = T_LOGICO;
+					$$.t == T_LOGICO;
                             } 
                             else {yyerror("Alguno de ellos no es de tipo entero.");}
               }
@@ -255,7 +255,7 @@ expreMul   : expreUna  {$$.t = $1.t;}
               $$.t = T_ERROR;
               if ($1.t != T_ERROR && $3.t != T_ERROR) {
 			if (($1.t == $3.t && $1.t == T_ENTERO)) {
-					$$.t = = T_LOGICO;
+					$$.t == T_LOGICO;
                             } 
                      else {yyerror("Alguno de ellos no es de tipo entero.");}
               }
@@ -265,7 +265,7 @@ expreMul   : expreUna  {$$.t = $1.t;}
 expreUna   : expreSufi {$$.t = $1.t;}
        | opUna expreUna
        {
-              $$.t = T_ERROR
+              $$.t = T_ERROR;
               if($2.t == T_ENTERO){
                      if ($1 == OP_NOT) {
                             yyerror("No se puede aplicar la operacion not si no es tipo logico.");
@@ -273,9 +273,9 @@ expreUna   : expreSufi {$$.t = $1.t;}
                      else {$$.t=$2.t;}
               }
               else if ($2.t == T_LOGICO) {
-                      if ($1 == OP_SUMA || $1 == OP_RESTA)
+                      if ($1 == OP_MAS || $1 == OP_MENOS)
                       {
-                            if ($1 == OP_SUMA || $1 == OP_RESTA)
+                            if ($1 == OP_MAS || $1 == OP_MENOS)
                             {
                                    yyerror("No se puede aplicar la operacion suma o resta si no es tipo entero.");
                             }
@@ -292,16 +292,16 @@ expreUna   : expreSufi {$$.t = $1.t;}
               SIMB simb = obtTdS($2);
               $$.t=T_ERROR;
 
-              if(sim.t = T_ERROR)
+              if(simb.t == T_ERROR)
               {
                      yyerror("El identificador no se encuentra registrado en la tabla de símbolos.");
               }
-              else if(sim.t != T_ENTERO)
+              else if(simb.t != T_ENTERO)
               {
                      yyerror("El tipo no es entero y no puede aplicarsele una operacion incremental.");
               }
               else{
-                     $$.t = sim.t
+                     $$.t = simb.t;
               }
        }
        ;
@@ -315,7 +315,7 @@ expreSufi   : const {$$.t=$1.t;}
               {
                      yyerror("El identificador no se encuentra registrado en la tabla de símbolos.");
               }
-              else {$$.t = simb.t}
+              else {$$.t = simb.t;}
        }
        | ID_ opIncre {
               SIMB simb = obtTdS($1);
@@ -333,7 +333,7 @@ expreSufi   : const {$$.t=$1.t;}
                      yyerror("El tipo no es entero y no puede aplicarsele una operacion incremental.");
               }
        }
-       | ID_ PUNTO_ ID_
+       //| ID_ PUNTO_ ID_
        | ID_ ACOR_ expre CCOR_ {
               SIMB simb = obtTdS($1);
               $$.t = T_ERROR;
@@ -359,13 +359,13 @@ expreSufi   : const {$$.t=$1.t;}
                      yyerror("El identificador no tiene correspondencia."); 
               }
               INF inf = obtTdD(simb.ref);
-              if (inf.t == T_ERROR)
+              if (inf.tipo == T_ERROR)
               {
                      yyerror("El identificador no tiene correspondencia."); 
               }
               else
               {
-                    $$.t = inf.t; 
+                    $$.t = inf.tipo; 
               }
        }
        ;
