@@ -30,14 +30,14 @@
 %type<tlista> paramForm listParamForm listCamp
 
 %type<cent> listDecla decla tipoSimp declaFunc declaVar
-              opAd opIgual opIncre opLogic opMul opRel opUna
+              opAd opIgual opIncre opLogic opMul opRel opUna paramAct listParamAct
 
 %type<texp> expre expreAd expreIgual expreLogic expreMul expreRel expreSufi expreUna const
 
 %%
 
 /*##################################*/
-programa   : 
+programa   :
               {dvar=0; niv=0; cargaContexto(niv);}
               listDecla
               { //char m = "main";
@@ -107,9 +107,9 @@ listCamp   : tipoSimp ID_ PCOMA_
        }
        ;
 
-declaFunc   : tipoSimp ID_ 
+declaFunc   : tipoSimp ID_
               {niv+=1; $<cent>$ = dvar; dvar = 0; cargaContexto(niv);}
-              APAR_ paramForm CPAR_ 
+              APAR_ paramForm CPAR_
               {if (!insTdS($2, FUNCION, $1, niv, dvar, $5.ref)){
                      yyerror("La funcion esta repetida");
               }}
@@ -168,7 +168,7 @@ instEntSal   : READ_ APAR_ ID_ CPAR_ PCOMA_
                             SIMB simb = obtTdS($3);
                             if(simb.t != T_ENTERO)
                                    {
-                                      yyerror("El argumento de entrada no es de tipo entero.");   
+                                      yyerror("El argumento de entrada no es de tipo entero.");
                                    }
                      }
        | PRINT_ APAR_ expre CPAR_ PCOMA_
@@ -180,13 +180,14 @@ instEntSal   : READ_ APAR_ ID_ CPAR_ PCOMA_
               }
        ;
 
-instSelec   : IF_ APAR_ expre CPAR_ inst ELSE_ inst
+instSelec   : IF_ APAR_ expre CPAR_
               {
                      if ($3.t != T_ERROR && $3.t != T_LOGICO)
                      {
                             yyerror("La expresion a evaluar no es una expresión lógica.");
                      }
               }
+              inst ELSE_ inst
        ;
 
 instIter   : WHILE_ APAR_ expre CPAR_
@@ -255,13 +256,15 @@ expre   : expreLogic {$$.t = $1.t;}
 expreLogic   : expreIgual {$$.t = $1.t;}
        | expreLogic opLogic expreIgual
        {    $$.t = T_ERROR;
-			if ($1.t != T_ERROR || $3.t != T_ERROR) {
-				if (!($1.t == $3.t && $1.t == T_LOGICO)) {
-					yyerror("Incompatibilidad de tipos.(Expresión Lógica)");
-				} else {
-					$$.t = T_LOGICO;
-				}
-			}
+            if(!($1.t==T_ERROR)){
+			    if ($1.t != T_ERROR || $3.t != T_ERROR) {
+				    if (!($1.t == $3.t && $1.t == T_LOGICO)) {
+					    yyerror("Incompatibilidad de tipos.(Expresión Lógica)");
+				    } else {
+					    $$.t = T_LOGICO;
+				    }
+			    }
+            }
        }
        ;
 
@@ -294,7 +297,7 @@ expreRel   : expreAd {$$.t = $1.t;}
                      {
                            if (($1.t == $3.t && $1.t == T_ENTERO)) {
 					$$.t = T_LOGICO;
-                            } 
+                            }
                             else {yyerror("Alguno de ellos no es de tipo entero.");}
                      }
               }
@@ -307,7 +310,7 @@ expreAd   : expreMul { $$.t = $1.t; }
               if ($1.t != T_ERROR && $3.t != T_ERROR) {
 			if (($1.t == $3.t && $1.t == T_ENTERO)) {
 					$$.t = T_ENTERO;
-                            } 
+                            }
                             else {yyerror("Alguno de ellos no es de tipo entero.");}
               }
        }
@@ -320,7 +323,7 @@ expreMul   : expreUna  {$$.t = $1.t;}
               if ($1.t != T_ERROR && $3.t != T_ERROR) {
 			if (($1.t == $3.t && $1.t == T_ENTERO)) {
 					$$.t = T_ENTERO;
-                            } 
+                            }
                      else {yyerror("Alguno de ellos no es de tipo entero.");}
               }
        }
@@ -433,16 +436,16 @@ expreSufi   : const {$$.t=$1.t;}
               $$.t = T_ERROR;
               if(simb.t == T_ERROR)
               {
-                     yyerror("El identificador no tiene correspondencia."); 
+                     yyerror("El identificador no tiene correspondencia.");
               }
               INF inf = obtTdD(simb.ref);
               if (inf.tipo == T_ERROR)
               {
-                     yyerror("El identificador no tiene correspondencia."); 
+                     yyerror("El identificador no tiene correspondencia.");
               }
               else
               {
-                    $$.t = inf.tipo; 
+                    $$.t = inf.tipo;
               }
        }
        ;
@@ -452,12 +455,14 @@ const   : CTE_  {$$.t=T_ENTERO;}
        | FALSE_ {$$.t=T_LOGICO;}
        ;
 
-paramAct   :
-       | listParamAct
+paramAct   : { $$ = insTdD(-1,T_VACIO); }
+       | listParamAct { $$ = $1; }
        ;
 
 listParamAct   : expre
+        { $$ = insTdD(-1,$1.t);}
        | expre COMA_ listParamAct
+        { $$ = insTdD($3,$1.t); }
        ;
 
 opLogic   : AND_ {$$ = OP_AND;}
