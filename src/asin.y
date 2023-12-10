@@ -40,7 +40,9 @@
 programa   : 
               {dvar=0; niv=0; cargaContexto(niv);}
               listDecla
-              {if(verTdS) mostrarTdS();}
+              { //char m = "main";
+              if(obtTdS("main").t==T_ERROR) yyerror("No existe la funcion main");
+              if(verTdS) mostrarTdS();}
        ;
 listDecla   : decla {$$ = $1;}
        | listDecla decla {$$ = $1 + $2;}
@@ -108,9 +110,14 @@ listCamp   : tipoSimp ID_ PCOMA_
 declaFunc   : tipoSimp ID_ 
               {niv+=1; $<cent>$ = dvar; dvar = 0; cargaContexto(niv);}
               APAR_ paramForm CPAR_ 
-              {insTdS($2, FUNCION, $1, niv, dvar, $5.ref);}
+              {if (!insTdS($2, FUNCION, $1, niv, dvar, $5.ref)){
+                     yyerror("La funcion esta repetida");
+              }}
               ALLA_ declaVarLocal listInst RETURN_ expre PCOMA_ CLLA_
-              {//si obtTdS($10).t != tipoSimp then error
+              {
+                     if($12.t != $1){
+                            yyerror("Error de tipos del return");
+                     }
                      if (verTdS){
                             mostrarTdS();
                      }
@@ -194,14 +201,19 @@ instIter   : WHILE_ APAR_ expre CPAR_
 
 expre   : expreLogic {$$.t = $1.t;}
        | ID_ ASIG_ expre
-              { SIMB simb = obtTdS($1);
-              if (simb.t == T_ERROR ) yyerror("Objeto no declarado");
-              else if (! (((simb.t == T_ENTERO) && ($3.t == T_ENTERO)) ||
-                     ((simb.t == T_LOGICO) && ($3.t == T_LOGICO))) )
-              yyerror("Error de tipos en la instrucción de asignación");
+              {
+              $$.t=T_ERROR;
+              SIMB simb = obtTdS($1);
+              if(!($3.t==T_ERROR)){
+                  if (simb.t == T_ERROR) yyerror("Objeto no declarado");
+                  else if (! (((simb.t == T_ENTERO) && ($3.t == T_ENTERO)) ||
+                         ((simb.t == T_LOGICO) && ($3.t == T_LOGICO))) )
+                  yyerror("Error de tipos en la instrucción de asignación");
+                  }else {$$.t=$3.t;}
               }
        | ID_ ACOR_ expre CCOR_ ASIG_ expre
        {
+              $$.t=T_ERROR;
               SIMB simb = obtTdS($1);
               DIM dim;
               if (simb.t != T_ARRAY) {
@@ -216,29 +228,30 @@ expre   : expreLogic {$$.t = $1.t;}
                     yyerror("El indice debe ser un entero o positivo.");
                 } else if (! ($6.t == dim.telem)) {
                     yyerror("Error de tipos en la instrucción de asignación");
-                }
+                }else {$$.t=$6.t;}
             }
        }
        | ID_ PUNTO_ ID_ ASIG_ expre
        {
+              $$.t=T_ERROR;
               SIMB simb = obtTdS($1);
               CAMP reg;
               if (simb.t != T_RECORD) {
                  yyerror("La variable no es un registro.");
               } else {
                  reg = obtTdR(simb.ref, $3);
-
+              }
 
               if (reg.t != T_ERROR && $5.t != T_ERROR) {
                 if (simb.t == T_ERROR) {
                     yyerror("No existe ninguna variable con ese identificador.");
                 } else if (! ($5.t == reg.t)) {
                     yyerror("Error de tipos en la instrucción de asignación");
-                }
-            }
+                }else{$$.t=$5.t;}
             }
        }
        ;
+
 expreLogic   : expreIgual {$$.t = $1.t;}
        | expreLogic opLogic expreIgual
        {    $$.t = T_ERROR;
@@ -293,7 +306,7 @@ expreAd   : expreMul { $$.t = $1.t; }
               $$.t = T_ERROR;
               if ($1.t != T_ERROR && $3.t != T_ERROR) {
 			if (($1.t == $3.t && $1.t == T_ENTERO)) {
-					$$.t = T_LOGICO;
+					$$.t = T_ENTERO;
                             } 
                             else {yyerror("Alguno de ellos no es de tipo entero.");}
               }
@@ -306,7 +319,7 @@ expreMul   : expreUna  {$$.t = $1.t;}
               $$.t = T_ERROR;
               if ($1.t != T_ERROR && $3.t != T_ERROR) {
 			if (($1.t == $3.t && $1.t == T_ENTERO)) {
-					$$.t = T_LOGICO;
+					$$.t = T_ENTERO;
                             } 
                      else {yyerror("Alguno de ellos no es de tipo entero.");}
               }
@@ -324,14 +337,11 @@ expreUna   : expreSufi {$$.t = $1.t;}
                      else {$$.t=$2.t;}
               }
               else if ($2.t == T_LOGICO) {
-                      if ($1 == OP_MAS || $1 == OP_MENOS)
-                      {
                             if ($1 == OP_MAS || $1 == OP_MENOS)
                             {
                                    yyerror("No se puede aplicar la operacion suma o resta si no es tipo entero.");
                             }
                             else {$$.t = T_LOGICO;}
-                      }
               }
               else
               {
