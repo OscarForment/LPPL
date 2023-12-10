@@ -139,6 +139,7 @@ inst   : ALLA_ listInst CLLA_
        ;
 
 instExpre   : expre PCOMA_ | PCOMA_
+       ;
 
 instEntSal   : READ_ APAR_ ID_ CPAR_ PCOMA_
                      {
@@ -166,13 +167,14 @@ instSelec   : IF_ APAR_ expre CPAR_ inst ELSE_ inst
               }
        ;
 
-instIter   : WHILE_ APAR_ expre CPAR_ inst
+instIter   : WHILE_ APAR_ expre CPAR_
               {
                      if($3.t != T_ERROR && $3.t != T_LOGICO)
                      {
                             yyerror("La expresion a evaluar no es una expresion logica.");
                      }
               }
+              inst
        ;
 
 expre   : expreLogic {$$.t = $1.t;}
@@ -181,24 +183,57 @@ expre   : expreLogic {$$.t = $1.t;}
               if (simb.t == T_ERROR) yyerror("Objeto no declarado");
               else if (! (((simb.t == T_ENTERO) && ($3.t == T_ENTERO)) ||
                      ((simb.t == T_LOGICO) && ($3.t == T_LOGICO))) )
-              yyerror("Error de tipos en la ‘instrucci´on de asignaci´on’");
+              yyerror("Error de tipos en la instrucción de asignación");
               }
        | ID_ ACOR_ expre CCOR_ ASIG_ expre
        {
               SIMB simb = obtTdS($1);
-              DIM ar = obtTdA($1);
+              DIM dim;
+              if (simb.t != T_ARRAY) {
+                yyerror("La variable no es un vector, no se puede acceder mediante indices.");
+              } else {
+                dim = obtTdA(simb.ref);
+              }
+              if ($3.t != T_ERROR && $6.t != T_ERROR) {
+                if (simb.t == T_ERROR) {
+                    yyerror("No existe ninguna variable con ese identificador.");
+                } else if (! ($3.t == T_ENTERO)) {
+                    yyerror("El indice debe ser un entero o positivo.");
+                } else if (! ($6.t == dim.telem)) {
+                    yyerror("Error de tipos en la instrucción de asignación");
+                }
+            }
        }
        | ID_ PUNTO_ ID_ ASIG_ expre
        {
               SIMB simb = obtTdS($1);
-              CAMP reg = obtTdR(simb.ref, $3);
+              CAMP reg;
+              if (simb.t != T_RECORD) {
+                 yyerror("La variable no es un registro.");
+              } else {
+                 reg = obtTdR(simb.ref, $3);
+              }
 
+              if (reg.t != T_ERROR && $5.t != T_ERROR) {
+                if (simb.t == T_ERROR) {
+                    yyerror("No existe ninguna variable con ese identificador.");
+                } else if (! ($5.t == reg.t)) {
+                    yyerror("Error de tipos en la instrucción de asignación");
+                }
+            }
        }
        ;
-
 expreLogic   : expreIgual {$$.t = $1.t;}
        | expreLogic opLogic expreIgual
-       {$$.t = T_LOGICO;}
+       {    $$.t = T_ERROR;
+			if ($1.t != T_ERROR || $3.t != T_ERROR) {
+				if (!($1.t == $3.t && $1.t == T_LOGICO)) {
+					yyerror("Incompatibilidad de tipos.(Expresión Lógica)");
+				} else {
+					$$.t = T_LOGICO;
+				}
+			}
+       }
        ;
 
 expreIgual   : expreRel {$$.t = $1.t;}
@@ -211,7 +246,7 @@ expreIgual   : expreRel {$$.t = $1.t;}
                             {
                                    yyerror("Tipos incompatibles");
                             }
-                            if ($1.t == $3.t && $3.t != T_LOGICO || $1.t == $3.t && $3.t != T_ENTERO)
+                            else if ($3.t != T_LOGICO || $3.t != T_ENTERO)
                             {
                                    yyerror("La expresión no es lógica o entera");
                             }
@@ -333,7 +368,18 @@ expreSufi   : const {$$.t=$1.t;}
                      yyerror("El tipo no es entero y no puede aplicarsele una operacion incremental.");
               }
        }
-       //| ID_ PUNTO_ ID_
+       | ID_ PUNTO_ ID_ {
+              SIMB simb = obtTdS($1);
+              $$.t = T_ERROR;
+              if(simb.t == T_ERROR)
+                     {
+                            yyerror("El identificador no pertenece a ningun simbolo.");
+                     }  else
+                     {
+                            CAMP c = obtTdR(simb.ref,$3);
+                            $$.t = c.t;
+                     }
+              }
        | ID_ ACOR_ expre CCOR_ {
               SIMB simb = obtTdS($1);
               $$.t = T_ERROR;
