@@ -110,7 +110,7 @@ listCamp   : tipoSimp ID_ PCOMA_
 declaFunc   : tipoSimp ID_
               {niv+=1; $<cent>$ = dvar; dvar = 0; cargaContexto(niv);}
               APAR_ paramForm CPAR_
-              {if (!insTdS($2, FUNCION, $1, niv, dvar, $5.ref)){
+              {if (!insTdS($2, FUNCION, $1, niv-1, dvar, $5.ref)){
                      yyerror("La funcion esta repetida");
               }}
               ALLA_ declaVarLocal listInst RETURN_ expre PCOMA_ CLLA_
@@ -437,16 +437,18 @@ expreSufi   : const {$$.t=$1.t;}
               if(simb.t == T_ERROR)
               {
                      yyerror("El identificador no tiene correspondencia.");
-              }
-              INF inf = obtTdD(simb.ref);
-              if (inf.tipo == T_ERROR)
-              {
-                     yyerror("El identificador no tiene correspondencia.");
-              }
-              else
-              {
-                    $$.t = inf.tipo;
-              }
+              } else{
+                  INF inf = obtTdD(simb.ref);
+                  if (inf.tipo == T_ERROR)
+                  {
+                         yyerror("El identificador no tiene correspondencia.");
+                  }
+                     else if (!(cmpDom(simb.ref, $3))) {
+                         yyerror("Error en el dominio de los parametros actuales");
+                  } else {
+                          $$.t = inf.tipo;
+                  }
+       }
        }
        ;
 
