@@ -49,8 +49,12 @@ decla   : declaVar {$$=0;}
        | declaFunc {$$=$1;}
        ;
 declaVar   : tipoSimp ID_ PCOMA_
-       {insTdS($2, VARIABLE, $1, niv, dvar, -1);
-       dvar += TALLA_TIPO_SIMPLE;}
+       {if(!insTdS($2, VARIABLE, $1, niv, dvar, -1)){
+            yyerror ("Identificador repetido");
+       } else {
+            dvar += TALLA_TIPO_SIMPLE;
+       }
+    }
        | tipoSimp ID_ ACOR_ CTE_ CCOR_ PCOMA_
        { int numelem = $4;
         if ($4 <= 0) {
@@ -64,8 +68,9 @@ declaVar   : tipoSimp ID_ PCOMA_
        }
        | STRUCT_ ALLA_ listCamp CLLA_ ID_ PCOMA_
        {
-              insTdS($5, VARIABLE, T_RECORD, niv, dvar, -1);
-              dvar += $3.talla;
+              if ( !insTdS($5, VARIABLE, T_RECORD, niv, dvar, $3.ref))
+                    yyerror ("Identificador repetido");
+             // else dvar += $3.talla;
        }
        ;
 
@@ -75,18 +80,28 @@ tipoSimp   : INT_
        {$$ = T_LOGICO;}
        ;
 listCamp   : tipoSimp ID_ PCOMA_
-       {insTdS($2, VARIABLE, $1, niv, dvar, -1);
-       dvar += TALLA_TIPO_SIMPLE;
-       int refe = insTdR($$.ref, $2, $1, dvar);
-       $$.talla = TALLA_TIPO_SIMPLE;
-       $$.ref=refe;
+       {
+       int refe = insTdR(-1, $2, $1, dvar);
+       //$$.talla = TALLA_TIPO_SIMPLE;
+       if(refe<0){
+              yyerror ("Campo repetido");
+       }else{
+              dvar += TALLA_TIPO_SIMPLE;
+              $$.ref=refe;
+       }
+
        }
        | listCamp tipoSimp ID_ PCOMA_
-       {insTdS($3, VARIABLE, $2, niv, dvar, -1);
-       dvar += TALLA_TIPO_SIMPLE;
-       $$.talla = $1.talla + TALLA_TIPO_SIMPLE;
+       {
+       //$$.talla = $1.talla + TALLA_TIPO_SIMPLE;
        int refe = insTdR($1.ref, $3, $2, dvar);
-       $$.ref=refe;
+       if(refe<0){
+              yyerror ("Campo repetido");
+       }else{
+              dvar += TALLA_TIPO_SIMPLE;
+              $$.ref=refe;
+       }
+
        }
        ;
 
@@ -180,7 +195,7 @@ instIter   : WHILE_ APAR_ expre CPAR_
 expre   : expreLogic {$$.t = $1.t;}
        | ID_ ASIG_ expre
               { SIMB simb = obtTdS($1);
-              if (simb.t == T_ERROR) yyerror("Objeto no declarado");
+              if (simb.t == T_ERROR ) yyerror("Objeto no declarado");
               else if (! (((simb.t == T_ENTERO) && ($3.t == T_ENTERO)) ||
                      ((simb.t == T_LOGICO) && ($3.t == T_LOGICO))) )
               yyerror("Error de tipos en la instrucción de asignación");
@@ -212,7 +227,7 @@ expre   : expreLogic {$$.t = $1.t;}
                  yyerror("La variable no es un registro.");
               } else {
                  reg = obtTdR(simb.ref, $3);
-              }
+
 
               if (reg.t != T_ERROR && $5.t != T_ERROR) {
                 if (simb.t == T_ERROR) {
@@ -220,6 +235,7 @@ expre   : expreLogic {$$.t = $1.t;}
                 } else if (! ($5.t == reg.t)) {
                     yyerror("Error de tipos en la instrucción de asignación");
                 }
+            }
             }
        }
        ;
@@ -264,7 +280,7 @@ expreRel   : expreAd {$$.t = $1.t;}
                      if ($1.t != T_ERROR && $3.t != T_ERROR)
                      {
                            if (($1.t == $3.t && $1.t == T_ENTERO)) {
-					$$.t == T_LOGICO;
+					$$.t = T_LOGICO;
                             } 
                             else {yyerror("Alguno de ellos no es de tipo entero.");}
                      }
@@ -277,7 +293,7 @@ expreAd   : expreMul { $$.t = $1.t; }
               $$.t = T_ERROR;
               if ($1.t != T_ERROR && $3.t != T_ERROR) {
 			if (($1.t == $3.t && $1.t == T_ENTERO)) {
-					$$.t == T_LOGICO;
+					$$.t = T_LOGICO;
                             } 
                             else {yyerror("Alguno de ellos no es de tipo entero.");}
               }
@@ -290,7 +306,7 @@ expreMul   : expreUna  {$$.t = $1.t;}
               $$.t = T_ERROR;
               if ($1.t != T_ERROR && $3.t != T_ERROR) {
 			if (($1.t == $3.t && $1.t == T_ENTERO)) {
-					$$.t == T_LOGICO;
+					$$.t = T_LOGICO;
                             } 
                      else {yyerror("Alguno de ellos no es de tipo entero.");}
               }
@@ -377,7 +393,12 @@ expreSufi   : const {$$.t=$1.t;}
                      }  else
                      {
                             CAMP c = obtTdR(simb.ref,$3);
-                            $$.t = c.t;
+                            if(c.t == T_ERROR){
+                                   yyerror("Campo no existe");
+                            }else{
+                                   $$.t = c.t;
+                            }
+
                      }
               }
        | ID_ ACOR_ expre CCOR_ {
