@@ -397,7 +397,7 @@ expreSufi   : const {$$.t=$1.t;}
        | ID_ PUNTO_ ID_ {
               SIMB simb = obtTdS($1);
               $$.t = T_ERROR;
-              if(simb.t == T_ERROR)
+              if(simb.t == T_ERROR || simb.t != T_RECORD)
                      {
                             yyerror("El identificador no pertenece a ningun simbolo.");
                      }  else
