@@ -467,35 +467,35 @@ listParamAct   : expre
         { $$ = insTdD($3,$1.t); }
        ;
 
-opLogic   : AND_ {$$ = OP_AND;}
-       | OR_ {$$ = OP_OR;}
+opLogic   : AND_ {$$ = EMULT;}
+       | OR_ {$$ = ESUM;}
        ;
 
-opIgual   : IGUAL_ {$$ = OP_IGUAL;}
-       | DISTINTO_ {$$ = OP_DISTINTO;}
+opIgual   : IGUAL_ {$$ = EIGUAL;}
+       | DISTINTO_ {$$ = EDIST;}
        ;
 
-opRel   : MAYOR_ {$$ = OP_MAYOR;}
-       | MENOR_ {$$ = OP_MENOR;}
-       | MAYORIG_ {$$ = OP_MAYORIG;}
-       | MENORIG_ {$$ = OP_MENORIG;}
+opRel   : MAYOR_ {$$ = EMAY;}
+       | MENOR_ {$$ = EMEN;}
+       | MAYORIG_ {$$ = EMAYEQ;}
+       | MENORIG_ {$$ = EMENEQ;}
        ;
 
-opAd   : MAS_ {$$ = OP_MAS;}
-       | MENOS_ {$$ = OP_MENOS;}
+opAd   : MAS_ {$$ = ESUM;}
+       | MENOS_ {$$ = EDIF;}
        ;
 
-opMul   : POR_ {$$ = OP_POR;}
-       | DIV_ {$$ = OP_DIV;}
+opMul   : POR_ {$$ = EMULT;}
+       | DIV_ {$$ = EDIVI;}
        ;
 
-opUna   : MAS_ {$$ = OP_MAS;}
-       | MENOS_ {$$ = OP_MENOS;}
-       | NOT_ {$$ = OP_NOT;}
+opUna   : MAS_ {$$ = ESUM;}
+       | MENOS_ {$$ = EDIF;}
+       | NOT_ {$$ = ESIG;}
        ;
 
-opIncre   : INCRE_ {$$ = OP_INCRE;}
-       | DECRE_ {$$ = OP_DECRE;}
+opIncre   : INCRE_ {$$ = ESUM;}
+       | DECRE_ {$$ = EDIF;}
        ;
 
 %%
