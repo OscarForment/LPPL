@@ -14,17 +14,16 @@
 %option nounput       
 %option yylineno  
 
-delimitador    [ \t\n]+
+delimitador    [ \t]+
 digito         [0-9]
 entero         {digito}+
 letra          [a-zA-Z]
 ident          {letra}({letra}|{digito}|_)*
-real           {digito}*"."{digito}*
-constante      {entero}|{real}   
+constante      ({entero}"."|{entero}|"."{entero}|{entero}"."{entero}) 
 comentario     \/\/.*
 
 %%
-
+"\n"            {if (verbosidad) {ECHO;fprintf(stdout,"%3d.- ", yylineno);};}
 {delimitador}   {if (verbosidad) ECHO; }
 {comentario}    {if (verbosidad) ECHO; }
 "="             { retornar (ASIG_);    }
@@ -66,7 +65,7 @@ comentario     \/\/.*
 "read"          { retornar(READ_); }
 "print"         { retornar(PRINT_); }
 
-{constante}     { retornar (CTE_);     }
-{ident}         { retornar (ID_);      }  
+{constante}     { yylval.cent = atoi(yytext); retornar (CTE_);     }
+{ident}         { yylval.ident = strdup(yytext); retornar (ID_);      }  
 .		{ yyerror("Caracter desconocido") ;}
 %%
