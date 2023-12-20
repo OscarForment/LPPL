@@ -35,7 +35,7 @@ typedef struct lista{
 
 typedef struct texp{
    int t;
-   //int v;
+   int d;
 } Expresion;
 /************************************* Variables externas definidas en el AL */
 extern int yylex();

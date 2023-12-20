@@ -3,6 +3,7 @@
 #include <string.h>
 #include "header.h"
 #include "libtds.h"
+#include "libgci.h"
 %}
 
 %union{
@@ -38,7 +39,7 @@
 
 /*##################################*/
 programa   :
-              {dvar=0; niv=0; cargaContexto(niv);omega=0;}
+              {dvar=0; niv=0; cargaContexto(niv);si=0;}
               listDecla
               { //char m = "main";
               if(obtTdS("main").t==T_ERROR) yyerror("No existe la funcion main");
@@ -298,7 +299,7 @@ expreRel   : expreAd {$$.t = $1.t;}
               }
               $$.d = creaVarTemp();
               emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.d));
-              emite($2, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgEtq(omega + 2));
+              emite($2, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgEtq(si + 2));
               emite(EASIG, crArgEnt(0), crArgNul(), crArgPos(niv, $$.d));
        }
        ;
@@ -306,7 +307,7 @@ expreRel   : expreAd {$$.t = $1.t;}
 expreAd   : expreMul { $$ = $1; }
        | expreAd opAd expreMul
        {
-              $$.t = T ERROR;
+              $$.t = T_ERROR;
               if (($1.t == T_ENTERO) && ($3.t == T_ENTERO)) $$.t = T_ENTERO;
               else yyerror("Error de tipos en la expresion aditiva");
               $$.d = creaVarTemp();
