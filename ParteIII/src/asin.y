@@ -38,7 +38,7 @@
 
 /*##################################*/
 programa   :
-              {dvar=0; niv=0; cargaContexto(niv);}
+              {dvar=0; niv=0; cargaContexto(niv);omega=0;}
               listDecla
               { //char m = "main";
               if(obtTdS("main").t==T_ERROR) yyerror("No existe la funcion main");
@@ -206,6 +206,7 @@ expre   : expreLogic {$$.t = $1.t;}
                          ((simb.t == T_LOGICO) && ($3.t == T_LOGICO))) )
                   yyerror("Error de tipos en la instrucción de asignación");
                   }else {$$.t=$3.t;}
+                  emite(EASIG,crArgPos(niv,$3.d),crArgNul(),crArgPos(niv,simb.d));
               }
        | ID_ ACOR_ expre CCOR_ ASIG_ expre
        {
@@ -286,28 +287,32 @@ expreIgual   : expreRel {$$.t = $1.t;}
 
 expreRel   : expreAd {$$.t = $1.t;}
        | expreRel opRel expreAd
-              {
-                     $$.t = T_ERROR;
-                     if ($1.t != T_ERROR && $3.t != T_ERROR)
-                     {
-                           if (($1.t == $3.t && $1.t == T_ENTERO)) {
-					$$.t = T_LOGICO;
-                            }
-                            else {yyerror("Alguno de ellos no es de tipo entero.");}
-                     }
-              }
-       ;
-
-expreAd   : expreMul { $$.t = $1.t; }
-       | expreAd opAd expreMul
        {
               $$.t = T_ERROR;
-              if ($1.t != T_ERROR && $3.t != T_ERROR) {
-			if (($1.t == $3.t && $1.t == T_ENTERO)) {
-					$$.t = T_ENTERO;
-                            }
-                            else {yyerror("Alguno de ellos no es de tipo entero.");}
+              if ($1.t != T_ERROR && $3.t != T_ERROR)
+              {
+                     if (($1.t == $3.t && $1.t == T_ENTERO)) {
+              $$.t = T_LOGICO;
+                     }
+                     else {yyerror("Alguno de ellos no es de tipo entero.");}
               }
+              $$.d = creaVarTemp();
+              emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.d));
+              emite($2, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgEtq(omega + 2));
+              emite(EASIG, crArgEnt(0), crArgNul(), crArgPos(niv, $$.d));
+       }
+       ;
+
+expreAd   : expreMul { $$ = $1; }
+       | expreAd opAd expreMul
+       {
+              $$.t = T ERROR;
+              if (($1.t == T_ENTERO) && ($3.t == T_ENTERO)) $$.t = T_ENTERO;
+              else yyerror("Error de tipos en la expresion aditiva");
+              $$.d = creaVarTemp();
+              /***************** Expresion a partir de un operador aritmetico */
+              emite($2, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgPos(niv, $$.d));
+
        }
        ;
 
@@ -321,6 +326,9 @@ expreMul   : expreUna  {$$.t = $1.t;}
                             }
                      else {yyerror("Alguno de ellos no es de tipo entero.");}
               }
+
+       $$.d = creaVarTemp();
+       emite($2, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgPos(niv, $$.d));
        }
        ;
 
