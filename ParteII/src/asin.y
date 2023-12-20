@@ -83,24 +83,19 @@ tipoSimp   : INT_
        ;
 listCamp   : tipoSimp ID_ PCOMA_
        {
-       int refe = insTdR(-1, $2, $1, dvar);
-       //$$.talla = TALLA_TIPO_SIMPLE;
-       if(refe<0){
-              yyerror ("Campo repetido");
-       }else{
-              dvar += TALLA_TIPO_SIMPLE;
-              $$.ref=refe;
-       }
+       $$.ref= insTdR(-1, $2, $1, 0);
+       $$.talla = TALLA_TIPO_SIMPLE;
 
        }
+
+
        | listCamp tipoSimp ID_ PCOMA_
        {
-       //$$.talla = $1.talla + TALLA_TIPO_SIMPLE;
-       int refe = insTdR($1.ref, $3, $2, dvar);
+       int refe = insTdR($1.ref, $3, $2, $1.talla);
        if(refe<0){
               yyerror ("Campo repetido");
        }else{
-              dvar += TALLA_TIPO_SIMPLE;
+              $$.talla = $1.talla + TALLA_TIPO_SIMPLE;
               $$.ref=refe;
        }
 
@@ -110,7 +105,7 @@ listCamp   : tipoSimp ID_ PCOMA_
 declaFunc   : tipoSimp ID_
               {niv+=1; $<cent>$ = dvar; dvar = 0; cargaContexto(niv);}
               APAR_ paramForm CPAR_
-              {if (!insTdS($2, FUNCION, $1, niv-1, dvar, $5.ref)){
+              {if (!insTdS($2, FUNCION, $1, niv-1, -1, $5.ref)){
                      yyerror("La funcion esta repetida");
               }}
               ALLA_ declaVarLocal listInst RETURN_ expre PCOMA_ CLLA_
@@ -123,7 +118,7 @@ declaFunc   : tipoSimp ID_
                      }
                      descargaContexto(niv);
                      niv-=1;
-                     dvar=$<cent>2;
+                     dvar=$<cent>3;
               }
        ;
 
