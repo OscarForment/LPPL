@@ -39,11 +39,21 @@
 
 /*##################################*/
 programa   :
-              {dvar=0; niv=0; cargaContexto(niv);si=0;}
+              {dvar=0; niv=0; cargaContexto(niv);si=0;
+              $<aux>$.ref1 = creaLans(si);
+              emite(INCTOP, crArgNul(), crArgNul(), crArgEnt(-1));
+              $<aux>$.ref2 = creaLans(si);
+               emite(GOTOS, crArgNul(), crArgNul(), crArgEtq(-1));
+              }
               listDecla
               { //char m = "main";
               if(obtTdS("main").t==T_ERROR) yyerror("No existe la funcion main");
-              if(verTdS) mostrarTdS();}
+              if(verTdS) mostrarTdS();
+              completaLans($<aux>1.ref1, crArgEnt(dvar));
+              SIMB simb = obtTdS("main");
+              $<aux>$.ref3 = sim.d;
+              completaLans($<aux>1.ref2, crArgEtq($<aux>$.ref3));
+              }
        ;
 listDecla   : decla {$$ = $1;}
        | listDecla decla {$$ = $1 + $2;}
@@ -166,6 +176,7 @@ instEntSal   : READ_ APAR_ ID_ CPAR_ PCOMA_
                                    {
                                       yyerror("El argumento de entrada no es de tipo entero.");
                                    }
+                            emite(EREAD, crArgNul(), crArgNul(),crArgPos(simb.n , simb.d));  
                      }
        | PRINT_ APAR_ expre CPAR_ PCOMA_
               {
@@ -173,6 +184,7 @@ instEntSal   : READ_ APAR_ ID_ CPAR_ PCOMA_
                             {
                                    yyerror("El argumento de salida no es un entero");
                             }
+                     emite(EWRITE, crArgNul(), crArgNul(), crArgPos(niv, $3.pos)); 
               }
        ;
 
@@ -182,8 +194,16 @@ instSelec   : IF_ APAR_ expre CPAR_
                      {
                             yyerror("La expresion a evaluar no es una expresión lógica.");
                      }
+                     $<aux>$.valor = creaLans(si);  
+                     emite(EIGUAL, crArgPos(niv, $3.pos), crArgEnt(0), crArgEtq(-1));  
               }
-              inst ELSE_ inst
+              inst {
+                     $<aux>$.valor = creaLans(si); 
+                     emite(GOTOS, crArgNul(), crArgNul(), crArgEtq(-1));  
+                     completaLans($<aux>5.valor, crArgEtq(si));
+              }
+              
+              ELSE_ inst { completaLans($<aux>7.valor, crArgEtq(si)); }    
        ;
 
 instIter   : WHILE_ APAR_ expre CPAR_
@@ -192,8 +212,14 @@ instIter   : WHILE_ APAR_ expre CPAR_
                      {
                             yyerror("La expresion a evaluar no es una expresion logica.");
                      }
+                     emite(GOTOS, crArgNul(), crArgNul(), crArgEtq($<aux>5.valor)); 
+                     completaLans($<aux>8.ref1, crArgEtq(si));
               }
               inst
+              {
+                     emite(GOTOS, crArgNul(), crArgNul(), crArgEtq($<aux>8.ref3)); 
+                     completaLans($<aux>8.ref2, crArgEtq(si));
+              }              
        ;
 
 expre   : expreLogic {$$.t = $1.t;}
@@ -283,6 +309,9 @@ expreIgual   : expreRel {$$.t = $1.t;}
                                    $$.t = T_LOGICO;
                             }
                      }
+                     emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.pos));
+                     emite($2, crArgPos(niv, $1.pos), crArgPos(niv, $3.pos), crArgEtq(si + 2));
+                     emite(EASIG, crArgEnt(0), crArgNul(), crArgPos(niv, $$.pos));
               }
        ;
 
