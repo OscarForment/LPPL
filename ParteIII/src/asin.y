@@ -403,7 +403,10 @@ expreUna   : expreSufi {$$.t = $1.t;}
        }
        ;
 
-expreSufi   : const {$$.t=$1.t;}
+expreSufi   : const {$$.t=$1.t;
+       $$.pos = creaVarTemp();
+       emite(EASIG, crArgEnt($1.pos), crArgNul(), crArgPos(niv, $$.pos)); 
+       }
        | APAR_ expre CPAR_ {$$.t = $2.t;}
        | ID_ {
               SIMB simb = obtTdS($1);
@@ -413,6 +416,8 @@ expreSufi   : const {$$.t=$1.t;}
                      yyerror("El identificador no se encuentra registrado en la tabla de símbolos.");
               }
               else {$$.t = simb.t;}
+              $$.pos = creaVarTemp();
+              emite(EASIG, crArgPos(niv, simb.d), crArgNul(), crArgPos(niv, $$.pos));
        }
        | ID_ opIncre {
               SIMB simb = obtTdS($1);
@@ -429,6 +434,9 @@ expreSufi   : const {$$.t=$1.t;}
               {
                      yyerror("El tipo no es entero y no puede aplicarsele una operacion incremental.");
               }
+              $$.pos = creaVarTemp();
+              emite(EASIG, crArgPos(simb.n, simb.d), crArgNul(), crArgPos(niv, $$.pos)); 
+              emite($2, crArgPos(simb.n, simb.d), crArgEnt(1), crArgPos(simb.n, simb.d));
        }
        | ID_ PUNTO_ ID_ {
               SIMB simb = obtTdS($1);
@@ -463,6 +471,8 @@ expreSufi   : const {$$.t=$1.t;}
                      DIM dim = obtTdA(simb.ref);
                      $$.t = dim.telem;
               }
+              $$.pos = creaVarTemp();
+              emite(EAV, crArgPos(simb.n, simb.d), crArgPos(niv, $3.pos), crArgPos(niv, $$.pos));
        }
        | ID_ APAR_ paramAct CPAR_ {
               SIMB simb = obtTdS($1);
@@ -482,6 +492,11 @@ expreSufi   : const {$$.t=$1.t;}
                           $$.t = inf.tipo;
                   }
        }
+       emite(INCTOP, crArgNul(), crArgNul(), crArgEnt(TALLA_TIPO_SIMPLE));
+       emite(CALL, crArgNul(), crArgNul(), crArgEtq(sim.d)); 
+       emite(DECTOP, crArgNul(), crArgNul(), crArgEnt(inf.tsp)); 
+       $$.pos = creaVarTemp();
+       emite(EPOP, crArgNul(), crArgNul(), crArgPos(niv, $$.pos));
        }
        ;
 
@@ -495,9 +510,11 @@ paramAct   : { $$ = insTdD(-1,T_VACIO); }
        ;
 
 listParamAct   : expre
-        { $$ = insTdD(-1,$1.t);}
+        { $$ = insTdD(-1,$1.t);
+       emite(EPUSH, crArgNul(), crArgNul(), crArgPos(niv, $1.pos)); }
        | expre COMA_ listParamAct
-        { $$ = insTdD($3,$1.t); }
+        { $$ = insTdD($3,$1.t);
+         emite(EPUSH, crArgNul(), crArgNul(), crArgPos(niv, $1.pos));}
        ;
 
 opLogic   : AND_ {$$ = EMULT;}
