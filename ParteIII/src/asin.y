@@ -44,7 +44,7 @@ programa   :
               $<aux>$.ref1 = creaLans(si);
               emite(INCTOP, crArgNul(), crArgNul(), crArgEnt(-1));
               $<aux>$.ref2 = creaLans(si);
-               emite(GOTOS, crArgNul(), crArgNul(), crArgEtq(-1));
+              emite(GOTOS, crArgNul(), crArgNul(), crArgEtq(-1));
               }
               listDecla
               { //char m = "main";
@@ -117,7 +117,7 @@ listCamp   : tipoSimp ID_ PCOMA_
 declaFunc   : tipoSimp ID_
               {niv+=1; $<cent>$ = dvar; dvar = 0; cargaContexto(niv);}
               APAR_ paramForm CPAR_
-              {if (!insTdS($2, FUNCION, $1, niv-1, -1, $5.ref)){
+              {if (!insTdS($2, FUNCION, $1, niv-1, si, $5.ref)){
                      yyerror("La funcion esta repetida");
               }
               emite( PUSHFP, crArgNul(), crArgNul(), crArgNul() );
@@ -131,13 +131,16 @@ declaFunc   : tipoSimp ID_
                      if($12.t != $1){
                             yyerror("Error de tipos del return");
                      }
+                     completaLans($<cent>7, crArgEnt(dvar));
                      int dvr = TALLA_SEGENLACES + TALLA_TIPO_SIMPLE + $5.talla;
                      emite(EASIG, crArgPos(niv, $12.d), crArgNul(), crArgPos(niv, -dvr));
                      emite(TOPFP, crArgNul(), crArgNul(), crArgNul() );
                      emite(FPPOP, crArgNul(), crArgNul(), crArgNul() );
                      if (strcmp($2,"main") == 0){
+                            $$ = -1;
                             emite(FIN, crArgNul(), crArgNul(), crArgNul());
                      } else {
+                            $$ = 0;
                             emite(RET, crArgNul(), crArgNul(), crArgNul());
                      }
 
@@ -509,11 +512,11 @@ expreSufi   : const {$$.t=$1.t;
               $$.d = creaVarTemp();
               emite(EAV, crArgPos(simb.n, simb.d), crArgPos(niv, $3.d), crArgPos(niv, $$.d));
        }
-       | ID_ 
+       | ID_ APAR_
        {
        emite(INCTOP, crArgNul(), crArgNul(), crArgEnt(TALLA_TIPO_SIMPLE));
-       }
-       APAR_ paramAct CPAR_ {
+       } 
+       paramAct CPAR_ {
               SIMB simb = obtTdS($1);
               $$.t = T_ERROR;
               INF inf = obtTdD(simb.ref);
