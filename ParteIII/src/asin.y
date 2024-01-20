@@ -421,6 +421,12 @@ expreUna   : expreSufi {$$.t = $1.t; $$.d = $1.d;}
               {
                      yyerror("No es de tipo logico o entero.");
               }
+              $$.d = creaVarTemp();
+              if ($1 == ESIG) {
+                emite(EDIF, crArgEnt(1), crArgPos(niv, $2.d), crArgPos(niv, $$.d));    
+              } else {
+                emite($1, crArgEnt(0), crArgPos(niv, $2.d), crArgPos(niv, $$.d));
+              }
        }
        | opIncre ID_
        {
@@ -438,6 +444,9 @@ expreUna   : expreSufi {$$.t = $1.t; $$.d = $1.d;}
               else{
                      $$.t = simb.t;
               }
+              $$.d = creaVarTemp();
+              emite($1, crArgPos(simb.n, simb.d), crArgEnt(1), crArgPos(simb.n, simb.d));
+              emite(EASIG, crArgPos(simb.n, simb.d), crArgNul(), crArgPos(niv, $$.d));
        }
        ;
 
