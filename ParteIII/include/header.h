@@ -37,6 +37,14 @@ typedef struct texp{
    int t;
    int d;
 } Expresion;
+
+typedef struct aux{
+   int valor;
+   int ref1;
+   int ref2; 
+   int ref3;
+   int ref4;
+} AUX;
 /************************************* Variables externas definidas en el AL */
 extern int yylex();
 extern int yyparse();
