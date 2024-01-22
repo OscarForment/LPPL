@@ -259,7 +259,8 @@ expre   : expreLogic {$$.t = $1.t; $$.d = $1.d;}
                   else if (! (((simb.t == T_ENTERO) && ($3.t == T_ENTERO)) ||
                          ((simb.t == T_LOGICO) && ($3.t == T_LOGICO))) )
                   yyerror("Error de tipos en la instrucción de asignación");
-                  }else {$$.t=$3.t;}
+                  }else {$$.t=$3.t; }
+                  $$.d=$3.d;
                   emite(EASIG,crArgPos(niv,$3.d),crArgNul(),crArgPos(niv,simb.d));
               }
        | ID_ ACOR_ expre CCOR_ ASIG_ expre
@@ -301,7 +302,12 @@ expre   : expreLogic {$$.t = $1.t; $$.d = $1.d;}
                     yyerror("No existe ninguna variable con ese identificador.");
                 } else if (! ($5.t == reg.t)) {
                     yyerror("Error de tipos en la instrucción de asignación");
-                }else{$$.t=$5.t;}
+                }else{$$.t=$5.t;
+                int desp = simb.d + reg.d;
+                $$.d = desp;
+                emite(EASIG, crArgPos(niv, $$.d), crArgNul(), crArgEnt(desp));
+                }
+                
             }
        }
        ;
@@ -489,19 +495,24 @@ expreSufi   : const {$$.t=$1.t;
        | ID_ PUNTO_ ID_ {
               SIMB simb = obtTdS($1);
               $$.t = T_ERROR;
+              CAMP c = obtTdR(simb.ref,$3);
               if(simb.t == T_ERROR || simb.t != T_RECORD)
                      {
                             yyerror("El identificador no pertenece a ningun simbolo.");
                      }  else
                      {
-                            CAMP c = obtTdR(simb.ref,$3);
+                            
                             if(c.t == T_ERROR){
                                    yyerror("Campo no existe");
                             }else{
                                    $$.t = c.t;
+                                   
                             }
 
                      }
+              int desp = simb.d + c.d;
+              $$.d = creaVarTemp();
+              emite(EASIG, crArgEnt(desp), crArgNul(), crArgPos(niv, $$.d));
               }
        | ID_ ACOR_ expre CCOR_ {
               SIMB simb = obtTdS($1);
