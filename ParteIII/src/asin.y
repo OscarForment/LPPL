@@ -347,6 +347,7 @@ expreIgual   : expreRel {$$.t = $1.t; $$.d = $1.d;}
                                    $$.t = T_LOGICO;
                             }
                      }
+                     $$.d = creaVarTemp();
                      emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.d));
                      emite($2, crArgPos(niv, $1.d), crArgPos(niv, $3.d), crArgEtq(si + 2));
                      emite(EASIG, crArgEnt(0), crArgNul(), crArgPos(niv, $$.d));
@@ -405,13 +406,13 @@ expreUna   : expreSufi {$$.t = $1.t; $$.d = $1.d;}
        {
               $$.t = T_ERROR;
               if($2.t == T_ENTERO){
-                     if ($1 == OP_NOT) {
+                     if ($1 == ESIG) {
                             yyerror("No se puede aplicar la operacion not si no es tipo logico.");
                      }
                      else {$$.t=$2.t;}
               }
               else if ($2.t == T_LOGICO) {
-                            if ($1 == OP_MAS || $1 == OP_MENOS)
+                            if ($1 == ESUM || $1 == EDIF)
                             {
                                    yyerror("No se puede aplicar la operacion suma o resta si no es tipo entero.");
                             }
