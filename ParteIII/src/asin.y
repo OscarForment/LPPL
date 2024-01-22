@@ -339,9 +339,9 @@ expreIgual   : expreRel {$$.t = $1.t; $$.d = $1.d;}
                             {
                                    yyerror("Tipos incompatibles");
                             }
-                            else if ($3.t != T_LOGICO || $3.t != T_ENTERO)
+                            else if ($3.t != T_LOGICO && $3.t != T_ENTERO)
                             {
-                                   yyerror("La expresión no es lógica o entera");
+                                   yyerror("La expresión no es lógica o entera.");
                             }
                             else {
                                    $$.t = T_LOGICO;
